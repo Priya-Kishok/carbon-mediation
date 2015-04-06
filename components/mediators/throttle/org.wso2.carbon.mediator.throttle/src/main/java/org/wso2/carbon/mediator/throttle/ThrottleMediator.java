@@ -1,21 +1,21 @@
 /*
- *  Licensed to the Apache Software Foundation (ASF) under one
- *  or more contributor license agreements.  See the NOTICE file
- *  distributed with this work for additional information
- *  regarding copyright ownership.  The ASF licenses this file
- *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
- *  with the License.  You may obtain a copy of the License at
+ * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *   * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- */
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/
+
 package org.wso2.carbon.mediator.throttle;
 
 import org.apache.axiom.om.OMElement;
@@ -23,7 +23,6 @@ import org.apache.axis2.clustering.ClusteringFault;
 
 import org.apache.axis2.clustering.ClusteringAgent;
 import org.apache.axis2.clustering.state.Replicator;
-
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -129,7 +128,7 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
 
         if (log.isDebugEnabled()) {
             log.debug("Start : Throttle mediator");
-            if(log.isTraceEnabled()) {
+            if (log.isTraceEnabled()) {
                 log.trace("Message : " + synCtx.getEnvelope());
             }
         }
@@ -137,14 +136,12 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
         // object multiple times  by multiple threads.
 
         synchronized (throttleLock) {
-
             // get Axis2 MessageContext and ConfigurationContext
             axisMC = ((Axis2MessageContext) synCtx).getAxis2MessageContext();
             cc = axisMC.getConfigurationContext();
 
             //To ensure check for clustering environment only happens one time
-            if ((throttle == null && !isResponse) || (isResponse
-                    && concurrentAccessController == null)) {
+            if ((throttle == null && !isResponse) || (isResponse && concurrentAccessController == null)) {
                 ClusteringAgent clusteringAgent = cc.getAxisConfiguration().getClusteringAgent();
                 if (clusteringAgent != null &&
                         clusteringAgent.getStateManager() != null) {
@@ -165,7 +162,7 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                     initInlineThrottle(synCtx, cc);
 
                 } else if (policyKey != null) {
-                    initThrottle(synCtx,cc);
+                    initThrottle(synCtx, cc);
 
                 }
             } else {
@@ -256,21 +253,21 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
         int subBranch = ((ReliantContinuationState) continuationState).getSubBranch();
         if (subBranch == 0) {
             if (!continuationState.hasChild()) {
-                result = ((SequenceMediator)onAcceptMediator).
+                result = ((SequenceMediator) onAcceptMediator).
                         mediate(synCtx, continuationState.getPosition() + 1);
             } else {
                 FlowContinuableMediator mediator =
-                        (FlowContinuableMediator) ((SequenceMediator)onAcceptMediator).
+                        (FlowContinuableMediator) ((SequenceMediator) onAcceptMediator).
                                 getChild(continuationState.getPosition());
                 result = mediator.mediate(synCtx, continuationState.getChildContState());
             }
         } else {
             if (!continuationState.hasChild()) {
-                result = ((SequenceMediator)onRejectMediator).
+                result = ((SequenceMediator) onRejectMediator).
                         mediate(synCtx, continuationState.getPosition() + 1);
             } else {
                 FlowContinuableMediator mediator =
-                        (FlowContinuableMediator) ((SequenceMediator)onRejectMediator).getChild(
+                        (FlowContinuableMediator) ((SequenceMediator) onRejectMediator).getChild(
                                 continuationState.getPosition());
                 result = mediator.mediate(synCtx, continuationState.getChildContState());
             }
@@ -292,7 +289,7 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
             boolean reCreate = false;
             // if the key refers to a dynamic resource
             if (entry.isDynamic()) {
-                if ( (!entry.isCached() || entry.isExpired() ) && version!= entry.getVersion()) {
+                if ((!entry.isCached() || entry.isExpired()) && version != entry.getVersion()) {
                     reCreate = true;
                     version = entry.getVersion();
                 }
@@ -361,10 +358,8 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                 throttle = ThrottleFactory.createMediatorThrottle(
                         PolicyEngine.getPolicy(inLinePolicy));
 
-                //At this point concurrent access controller definitely 'null'
-                // f the clustering is disable.
-                //For a clustered environment,it is 'null' ,
-                //if this is the first instance on the cluster ,
+                // At this point concurrent access controller definitely 'null' if the clustering is disable.
+                // For a clustered environment,it is 'null',if this is the first instance on the cluster ,
                 // that message mediation has occurred through this mediator.
                 if (throttle != null && concurrentAccessController == null) {
                     concurrentAccessController =
@@ -432,11 +427,11 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
         String remoteIP = (String) axisMC.getPropertyNonReplicable(
                 org.apache.axis2.context.MessageContext.REMOTE_ADDR);
 
-        if(remoteIP!=null){
+        if (remoteIP != null) {
             if (remoteIP.indexOf(",") > 0) {
                 remoteIP = remoteIP.substring(0, remoteIP.indexOf(","));
             }
-        }else {
+        } else {
             remoteIP = (String) axisMC.getProperty("REMOTE_ADDR");
         }
         //domain name of the caller
@@ -459,12 +454,7 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                     //checks the availability of a policy configuration for  this domain name
                     callerId = config.getConfigurationKeyOfCaller(domainName);
                     if (callerId != null) {  // there is configuration for this domain name
-
-                        //If this is a clustered env.
-//                        if (isClusteringEnable) {
-//                            context.setConfigurationContext(cc);
                         context.setThrottleId(id);
-//                        }
 
                         try {
                             //Checks for access state
@@ -477,10 +467,8 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                                         + " for Domain Name : " + domainName);
                             }
 
-                            //In the case of both of concurrency throttling and
-                            //rate based throttling have enabled ,
-                            //if the access rate less than maximum concurrent access ,
-                            //then it is possible to occur death situation.To avoid that reset,
+                            //In the case of both of concurrency throttling and rate based throttling have enabled ,
+                            //if the access rate less than maximum concurrent access ,then it is possible to occur death situation.To avoid that reset,
                             //if the access has denied by rate based throttling
                             if (!canAccess && concurrentAccessController != null) {
                                 concurrentAccessController.incrementAndGet();
@@ -523,12 +511,7 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                             //Checks the availability of a policy configuration for  this ip
                             callerId = config.getConfigurationKeyOfCaller(remoteIP);
                             if (callerId != null) {   // there is configuration for this ip
-
-                                //For clustered env.
-//                                if (isClusteringEnable) {
-//                                    context.setConfigurationContext(cc);
                                 context.setThrottleId(id);
-//                                }
                                 //Checks access state
                                 AccessInformation accessInformation = accessControler.canAccess(
                                         context,
@@ -541,10 +524,8 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
                                             (canAccess ? "allowed" : "denied")
                                             + " for IP : " + remoteIP);
                                 }
-                                //In the case of both of concurrency throttling and
-                                //rate based throttling have enabled ,
-                                //if the access rate less than maximum concurrent access ,
-                                //then it is possible to occur death situation.To avoid that reset,
+                                //In the case of both of concurrency throttling and rate based throttling have enabled ,
+                                //if the access rate less than maximum concurrent access, then it is possible to occur death situation.To avoid that reset,
                                 //if the access has denied by rate based throttling
                                 if (!canAccess && concurrentAccessController != null) {
                                     concurrentAccessController.incrementAndGet();
@@ -562,8 +543,6 @@ public class ThrottleMediator extends AbstractMediator implements ManagedLifecyc
         }
         return canAccess;
     }
-
-
 
 
     /**

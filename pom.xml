@@ -18,7 +18,6 @@
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 		 <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
@@ -1027,6 +1026,11 @@
                 <version>${carbon.mediation.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.mediator.throttle</artifactId>
+                <version>${carbon.mediation.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.mediation</groupId>
                 <artifactId>org.wso2.carbon.mediation.templates.ui</artifactId>
                 <version>${carbon.mediation.version}</version>
@@ -1849,10 +1853,10 @@
                 <version>${org.wso2.caching.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.throttle</groupId>
-                <artifactId>wso2throttle-core</artifactId>
-                <version>${org.wso2.throttle.version}</version>
-            </dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.throttle.core</artifactId>
+                <version>${org.wso2.carbon.throttle.core.version}</version>
+             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>com.jayway.jsonpath</artifactId>
@@ -1958,7 +1962,7 @@
         <!--Misc-->
         <org.wso2.uri.template.version>1.6.4</org.wso2.uri.template.version>
         <org.wso2.caching.version>4.0.3</org.wso2.caching.version>
-        <org.wso2.throttle.version>3.3.0</org.wso2.throttle.version>
+        <!--<org.wso2.throttle.version>3.3.0</org.wso2.throttle.version>-->
         <ec2.client.version>4.2.0</ec2.client.version>
         <carbon.startup.version>4.2.0</carbon.startup.version>
         <org.wso2.carbon.caching.core.version>4.2.0</org.wso2.carbon.caching.core.version>
@@ -2041,6 +2045,7 @@
         <javax.xml.soap.imp.pkg.version>[1.0.0, 1.1.0)</javax.xml.soap.imp.pkg.version>
         <!--<org.apache.commons.logging.version>[1.1.0, 1.2.0)</org.apache.commons.logging.version>-->
         <org.apache.commons.logging.version>1.1.1</org.apache.commons.logging.version>
+        <org.wso2.carbon.throttle.core.version>4.2.0</org.wso2.carbon.throttle.core.version>
         <project.scm.id>wso2-scm-server</project.scm.id>
 
     </properties>
