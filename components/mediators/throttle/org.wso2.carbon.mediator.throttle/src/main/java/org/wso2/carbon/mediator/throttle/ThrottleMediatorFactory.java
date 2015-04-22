@@ -69,8 +69,8 @@ public class ThrottleMediatorFactory extends AbstractMediatorFactory {
                 }
             }
         }
-        // after successfully creating the mediator
-        // set its common attributes such as tracing etc
+        /* after successfully creating the mediator
+           set its common attributes such as tracing etc */
         processAuditStatus(throttleMediator,elem);
 
         String id = elem.getAttributeValue(new QName(XMLConfigConstants.NULL_NAMESPACE, "id"));
