@@ -29,6 +29,7 @@ import org.wso2.carbon.mediation.initializer.ServiceBusUtils;
 import org.wso2.carbon.mediation.initializer.persistence.MediationPersistenceManager;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.application.deployer.AppDeployerUtils;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayOutputStream;
@@ -42,6 +43,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import org.wso2.carbon.mediation.initializer.utils.CreateApplicationZip;
+import org.wso2.carbon.mediation.initializer.utils.mytest;
+import org.wso2.carbon.mediation.initializer.utils.test;
 
 /**
  * Copyright (c) 2012, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
@@ -368,6 +372,9 @@ public class EndpointAdmin extends AbstractServiceBusAdmin {
                 EndpointMetaData data = new EndpointMetaData();
                 data.setName(ep.getName());
                 data.setDescription(ep.getDescription());
+                data.setCapp(ep.isDeployFromCApp());
+                System.out.println("isCapp from Endpoint admin : "+ep.isDeployFromCApp());
+              //  data.setCapp(ep.iscApp());
 
                 // Statistics
                 EndpointDefinition def = ((AbstractEndpoint) ep).getDefinition();
@@ -500,6 +507,8 @@ public class EndpointAdmin extends AbstractServiceBusAdmin {
                 Endpoint previousEndpoint = getSynapseConfiguration().getEndpoint(
                         endpointName.trim());
 
+
+
                 if (previousEndpoint == null) {
                     addEndpoint(epString);
                 }
@@ -524,6 +533,9 @@ public class EndpointAdmin extends AbstractServiceBusAdmin {
                 if (endpoint == null) {
                     handleFault("Newly created endpoint is null ", null);
                 }
+                if (fileName != null && endpoint instanceof AbstractEndpoint) {
+                    endpoint.setFileName(fileName);
+                }
                 if (null != def) {
                     if (statisticsState) {
                         ((AbstractEndpoint) endpoint).getDefinition()
@@ -531,30 +543,66 @@ public class EndpointAdmin extends AbstractServiceBusAdmin {
                     }
                 }
 
-                if (fileName != null && endpoint instanceof AbstractEndpoint) {
-                    endpoint.setFileName(fileName);
+                if(previousEndpoint.isDeployFromCApp()) {
+                    String appUnzipDir = AppDeployerUtils.getAppUnzipDir()+"/"+AppDeployerUtils.getTenantIdString()+"/";
+                    String tempPath = previousEndpoint.getCAppFilePath().replaceAll(appUnzipDir, "");
+                    String tempCappPath = appUnzipDir+tempPath.substring(0,tempPath.indexOf("/"));
+
+                    endpoint.setDeployFromCApp(true);
+                    endpoint.setCAppFileName(previousEndpoint.getCAppFileName());
+                    endpoint.setCAppFilePath(previousEndpoint.getCAppFilePath());
+                    endpoint.init(getSynapseEnvironment());
+                    endpointName = endpointName.trim();
+                    getSynapseConfiguration().removeEndpoint(endpointName);
+                    getSynapseConfiguration().addEndpoint(endpointName, endpoint);
+                  //  persistEndpoint(endpoint);
+
+                    writeToFile(endpointElement, previousEndpoint.getCAppFilePath());
+                    //this is returning /home/priyakishok/Training-Project/cApp/test1/wso2esb-4.9.0-M8-SNAPSHOT/repository/deployment/server//carbonapps
+//                    String cAppPath = AppDeployerUtils.getApplicationLocation();
+//                    System.out.println("==========");
+//                    System.out.println(cAppPath);
+
+                    String d = "/home/priyakishok/Training-Project/cApp/test1/wso2esb-4.9.0-M8-SNAPSHOT/repository/deployment/server/carbonapps/"+previousEndpoint.getCAppFileName()+".car";
+
+                    CreateApplicationZip cz = new CreateApplicationZip();
+                    cz.createZip(tempCappPath, d);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Updated the definition of the endpoint : " + endpointName);
+                    }
+                }
+                else {
+
+                    endpoint.init(getSynapseEnvironment());
+                    endpointName = endpointName.trim();
+                    getSynapseConfiguration().removeEndpoint(endpointName);
+                    getSynapseConfiguration().addEndpoint(endpointName, endpoint);
+                    persistEndpoint(endpoint);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Updated the definition of the endpoint : " + endpointName);
+                    }
+
                 }
 
-                endpoint.init(getSynapseEnvironment());
-                endpointName = endpointName.trim();
-                getSynapseConfiguration().removeEndpoint(endpointName);
-                getSynapseConfiguration().addEndpoint(endpointName, endpoint);
-                persistEndpoint(endpoint);
-                if (log.isDebugEnabled()) {
-                    log.debug("Updated the definition of the endpoint : " + endpointName);
-                }
+
                 return true;
             } else {
                 handleFault("Unable to update endpoint. Invalid XML definition", null);
             }
         } catch (SynapseException syne) {
             handleFault("Unable to edit Endpoint ", syne);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             lock.unlock();
         }
         return false;
     }
 
+    @Override
+    protected void writeToFile(OMElement content, String fileName) throws Exception {
+      super.writeToFile(content,fileName);
+    }
     /**
      * Update an existing Endpoint endpoint in the registry
      *

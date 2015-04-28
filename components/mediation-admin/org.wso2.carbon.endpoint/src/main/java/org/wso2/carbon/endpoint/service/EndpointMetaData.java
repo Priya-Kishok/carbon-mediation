@@ -26,6 +26,7 @@ public class EndpointMetaData {
     private String description;
     private boolean switchOn;
     private String endpointString;
+    private boolean capp;
 
     /**
      * Get the configuration of an Endpoint
@@ -106,5 +107,9 @@ public class EndpointMetaData {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public boolean getCapp(){return capp;}
+
+    public void setCapp(boolean test){ this.capp = test;}
 
 }

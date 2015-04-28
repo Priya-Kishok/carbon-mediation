@@ -571,6 +571,7 @@ function resetVars() {
         <tr>
             <th style="width:4%"><fmt:message key="endpoint.select"/></th>
             <th style="width:20%"><fmt:message key="endpoint.name"/></th>
+            <th style="width:20%"><fmt:message key="iscApp"/></th>
             <th style="width:20%"><fmt:message key="type"/></th>
             <th colspan="4"><fmt:message key="action"/></th>
         </tr>
@@ -597,6 +598,19 @@ function resetVars() {
                     }
                 %>
             </td>
+            <td><% if (endpoint.getCapp()) { %>
+                                <span href="#">
+                                <img src="images/applications.gif">
+                                     Changes of this Endpoint will not persist in the CAPP
+                                </span>
+                            <%
+                            } else {
+                            %>
+                            <span href="#"></span>
+                            <%
+                                }
+                            %>
+                        </td>
             <td>
                 <%
                     EndpointService ePService = client.getEndpointService(endpoint);

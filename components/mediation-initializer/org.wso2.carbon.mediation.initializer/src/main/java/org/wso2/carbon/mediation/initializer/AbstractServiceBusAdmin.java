@@ -16,9 +16,12 @@
 
 package org.wso2.carbon.mediation.initializer;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.axis2.description.Parameter;
+import org.apache.axis2.util.XMLPrettyPrinter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.synapse.SynapseConstants;
@@ -26,9 +29,12 @@ import org.apache.synapse.ServerConfigurationInformation;
 import org.apache.synapse.ServerContextInformation;
 import org.apache.synapse.config.SynapseConfiguration;
 import org.apache.synapse.core.SynapseEnvironment;
+import org.apache.synapse.deployers.SynapseArtifactDeploymentStore;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.mediation.initializer.persistence.MediationPersistenceManager;
 
+import java.io.File;
+import java.io.OutputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -128,5 +134,16 @@ public class AbstractServiceBusAdmin extends AbstractAdmin {
         if (lock != null) {
             lock.unlock();
         }
+    }
+
+    protected void writeToFile(OMElement content, String fileName) throws Exception {
+
+        SynapseArtifactDeploymentStore deploymentStore =
+                getSynapseConfiguration().getArtifactDeploymentStore();
+        deploymentStore.addRestoredArtifact(fileName);
+        OutputStream out = FileUtils.openOutputStream(new File(fileName));
+        XMLPrettyPrinter.prettify(content, out);
+        out.flush();
+        out.close();
     }
 }

@@ -23,8 +23,6 @@ import java.util.Properties;
 
 public class EndpointDeployer extends org.apache.synapse.deployers.EndpointDeployer {
 
-
-
     @Override
     public void init(ConfigurationContext configCtx) {
         super.init(configCtx);

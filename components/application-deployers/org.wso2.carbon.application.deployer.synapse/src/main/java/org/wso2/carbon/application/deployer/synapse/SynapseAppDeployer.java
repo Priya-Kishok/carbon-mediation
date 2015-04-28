@@ -20,7 +20,6 @@ package org.wso2.carbon.application.deployer.synapse;
 import org.apache.axis2.deployment.Deployer;
 import org.apache.axis2.deployment.DeploymentEngine;
 import org.apache.axis2.deployment.DeploymentException;
-import org.apache.axis2.deployment.repository.util.DeploymentFileData;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -90,14 +89,16 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
                 File artifactInRepo = new File(artifactDir + File.separator + fileName);
 
                 if (SynapseAppDeployerConstants.SEQUENCE_TYPE.equals(artifact.getType()) &&
-                    handleMainFaultSeqDeployment(artifact, axisConfig)) {
+                        handleMainFaultSeqDeployment(artifact, axisConfig)) {
                 } else if (artifactInRepo.exists()) {
                     log.warn("Artifact " + fileName + " already found in " + artifactInRepo.getAbsolutePath() +
-                    ". Ignoring CAPP's artifact");
+                            ". Ignoring CAPP's artifact");
                     artifact.setDeploymentStatus(AppDeployerConstants.DEPLOYMENT_STATUS_DEPLOYED);
                 } else {
                     try {
-                        deployer.deploy(new DeploymentFileData(new File(artifactPath), deployer));
+                        ApplicationDeploymentFileData deploymentFileData = new ApplicationDeploymentFileData(new File(artifactPath), deployer);
+                        deploymentFileData.setParentFileName(carbonApp.getAppNameWithVersion());
+                        deployer.deploy(deploymentFileData);
                         artifact.setDeploymentStatus(AppDeployerConstants.DEPLOYMENT_STATUS_DEPLOYED);
                     } catch (DeploymentException e) {
                         artifact.setDeploymentStatus(AppDeployerConstants.DEPLOYMENT_STATUS_FAILED);
@@ -145,7 +146,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
             }
 
             if (deployer != null && AppDeployerConstants.DEPLOYMENT_STATUS_DEPLOYED.
-                                            equals(artifact.getDeploymentStatus())) {
+                    equals(artifact.getDeploymentStatus())) {
 
                 String fileName = artifact.getFiles().get(0).getName();
                 String artifactName = artifact.getName();
@@ -156,7 +157,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
                     if (SynapseAppDeployerConstants.MEDIATOR_TYPE.endsWith(artifact.getType())) {
                         deployer.undeploy(artifactPath);
                     } else if (SynapseAppDeployerConstants.SEQUENCE_TYPE.equals(artifact.getType())
-                               && handleMainFaultSeqUndeployment(artifact, axisConfig)) {
+                            && handleMainFaultSeqUndeployment(artifact, axisConfig)) {
                     } else if (artifactInRepo.exists()) {
                         log.info("Deleting artifact at " + artifactInRepo.getAbsolutePath());
                         if (!artifactInRepo.delete()) {
@@ -192,7 +193,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
      * @throws DeploymentException if something goes wrong while deployment
      */
     private void deployClassMediators(List<Artifact.Dependency> artifacts,
-                                     AxisConfiguration axisConfig) throws DeploymentException {
+                                      AxisConfiguration axisConfig) throws DeploymentException {
         for (Artifact.Dependency dependency : artifacts) {
 
             Artifact artifact = dependency.getArtifact();
@@ -210,7 +211,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
                     String artifactPath = artifact.getExtractedPath() + File.separator + fileName;
 
                     try {
-                        deployer.deploy(new DeploymentFileData(new File(artifactPath), deployer));
+                        deployer.deploy(new ApplicationDeploymentFileData(new File(artifactPath), deployer));
                         artifact.setDeploymentStatus(AppDeployerConstants.DEPLOYMENT_STATUS_DEPLOYED);
                     } catch (DeploymentException e) {
                         artifact.setDeploymentStatus(AppDeployerConstants.DEPLOYMENT_STATUS_FAILED);
@@ -272,7 +273,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
      * @throws java.io.IOException
      */
     private boolean handleMainFaultSeqUndeployment(Artifact artifact,
-                                                     AxisConfiguration axisConfig)
+                                                   AxisConfiguration axisConfig)
             throws IOException {
 
         boolean isMainOrFault = false;
@@ -324,14 +325,14 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
 
         if (!isAccepted(artifact.getType())) {
             log.warn("Can't deploy artifact : " + artifact.getName() + " of type : " +
-                     artifact.getType() + ". Required features are not installed in the system");
+                    artifact.getType() + ". Required features are not installed in the system");
             return false;
         }
 
         List<CappFile> files = artifact.getFiles();
         if (files.size() != 1) {
             log.error("Synapse artifact types must have a single file to " +
-                      "be deployed. But " + files.size() + " files found.");
+                    "be deployed. But " + files.size() + " files found.");
             return false;
         }
 
@@ -355,9 +356,9 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
             String synapseConfigPath = ServiceBusUtils.getSynapseConfigAbsPath(
                     environmentService.getSynapseEnvironment().getServerContextInformation());
             String endpointDirPath = synapseConfigPath
-                                     + File.separator + directory;
+                    + File.separator + directory;
             deployer = deploymentEngine.getDeployer(endpointDirPath,
-                                                    ServiceBusConstants.ARTIFACT_EXTENSION);
+                    ServiceBusConstants.ARTIFACT_EXTENSION);
         }
         return deployer;
     }
@@ -371,7 +372,7 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
     private Deployer getClassMediatorDeployer(AxisConfiguration axisConfig) {
         DeploymentEngine deploymentEngine = (DeploymentEngine) axisConfig.getConfigurator();
         String classMediatorPath = axisConfig.getRepository().getPath() +
-                                   File.separator + SynapseAppDeployerConstants.MEDIATORS_FOLDER;
+                File.separator + SynapseAppDeployerConstants.MEDIATORS_FOLDER;
         return deploymentEngine.
                 getDeployer(classMediatorPath, ServiceBusConstants.CLASS_MEDIATOR_EXTENSION);
     }
@@ -418,25 +419,25 @@ public class SynapseAppDeployer implements AppDeploymentHandler {
      */
     private String getArtifactDirPath(AxisConfiguration axisConfiguration, String artifactDirName) {
         return axisConfiguration.getRepository().getPath() +
-               SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
-               File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
-               File.separator + artifactDirName;
+                SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
+                File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
+                File.separator + artifactDirName;
     }
 
     private String getMainXmlPath(AxisConfiguration axisConfig) {
         return axisConfig.getRepository().getPath() +
-               SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
-               File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
-               File.separator + SynapseAppDeployerConstants.SEQUENCES_FOLDER +
-               File.separator + SynapseAppDeployerConstants.MAIN_SEQ_FILE;
+                SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
+                File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
+                File.separator + SynapseAppDeployerConstants.SEQUENCES_FOLDER +
+                File.separator + SynapseAppDeployerConstants.MAIN_SEQ_FILE;
     }
 
     private String getFaultXmlPath(AxisConfiguration axisConfig) {
         return axisConfig.getRepository().getPath() +
-               SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
-               File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
-               File.separator + SynapseAppDeployerConstants.SEQUENCES_FOLDER +
-               File.separator + SynapseAppDeployerConstants.FAULT_SEQ_FILE;
+                SynapseAppDeployerConstants.SYNAPSE_CONFIGS +
+                File.separator + SynapseAppDeployerConstants.DEFAULT_DIR +
+                File.separator + SynapseAppDeployerConstants.SEQUENCES_FOLDER +
+                File.separator + SynapseAppDeployerConstants.FAULT_SEQ_FILE;
     }
 
 }
